@@ -95,9 +95,29 @@ footer{padding:35px 0 45px;border-top:1px solid var(--line);color:#747d8d;font-s
 .navlinks a:active{transform:scale(.96)}
 @media(prefers-reduced-motion:reduce){.tessera-water-fx *{animation-duration:.01ms!important}.navlinks a{transition:none!important}}
 
+
+/* TESSERA STUDIO — responsive cinematic entry intro */
+html.intro-lock, html.intro-lock body { overflow: hidden !important; }
+#tessera-entry-intro{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:#020308;opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease}
+#tessera-entry-intro.is-leaving{opacity:0;visibility:hidden;pointer-events:none}
+#tessera-entry-intro video{display:block;width:100%;height:100%;object-fit:contain;background:#020308}
+#tessera-entry-intro .intro-loading{position:absolute;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.72);font:700 10px/1.4 Inter,system-ui,sans-serif;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap;text-shadow:0 2px 12px #000}
+#tessera-entry-intro .intro-dot{width:6px;height:6px;border-radius:50%;background:#55dcff;box-shadow:0 0 14px #13bdf4;animation:tesseraIntroPulse 1s ease-in-out infinite alternate}
+#tessera-entry-intro .intro-fallback{display:none;position:absolute;left:50%;bottom:22px;transform:translateX(-50%);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:10px 15px;color:#fff;background:rgba(5,8,16,.8);font:700 11px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+#tessera-entry-intro.has-error .intro-fallback{display:block}
+@keyframes tesseraIntroPulse{from{opacity:.35;transform:scale(.8)}to{opacity:1;transform:scale(1.15)}}
+@media(prefers-reduced-motion:reduce){#tessera-entry-intro{transition:none}}
+
 </style>
 </head>
 <body>
+
+<div id="tessera-entry-intro" role="status" aria-label="Tessera Studio sedang dibuka">
+  <video id="tessera-entry-video" autoplay muted playsinline preload="auto" aria-label="Tessera Studio cinematic intro"></video>
+  <div class="intro-loading" id="tessera-intro-loading"><span class="intro-dot"></span><span>INITIALIZING TESSERA STUDIO</span></div>
+  <button class="intro-fallback" id="tessera-intro-fallback" type="button">Lanjut ke website</button>
+</div>
+
 <header id="header">
   <div class="container nav">
     <a href="#home" class="brand" aria-label="Tessera Studio">
@@ -164,7 +184,7 @@ footer{padding:35px 0 45px;border-top:1px solid var(--line);color:#747d8d;font-s
 <div class="container">
   <div class="section-head reveal"><span class="kicker">/ Info</span><h2>Built for consistent<br>content.</h2><p>Workflow internal dibuat supaya pengerjaan tetap terstruktur saat project berpindah antar editor.</p></div>
   <div class="info-grid">
-    <article class="info-card reveal"><div class="info-icon">◈</div><h3>Software Standard</h3><p>Tim menggunakan software utama yang sama,CapCut PC versi yang disepakati, untuk mengurangi masalah kompatibilitas.</p></article>
+    <article class="info-card reveal"><div class="info-icon">◈</div><h3>Software Standard</h3><p>Tim menggunakan software utama yang sama, seperti Adobe Premiere Pro atau CapCut PC versi yang disepakati, untuk mengurangi masalah kompatibilitas.</p></article>
     <article class="info-card reveal"><div class="info-icon">⌁</div><h3>Folder Terstruktur</h3><p>01 Footage Mentah · 02 Audio Backsound SFX · 03 Graphic Meme Assets · 04 Project File · 05 Export Draft Final.</p></article>
     <article class="info-card reveal"><div class="info-icon">↗</div><h3>Handover System</h3><p>Jika editor utama berhalangan, project dan aset disinkronisasi ke shared drive agar pekerjaan dapat dilanjutkan tanpa mengulang dari awal.</p></article>
     <article class="info-card reveal"><div class="info-icon">35%</div><h3>Rough Cut</h3><p>Pembagian fee milestone internal: trimming dan rough cut 35%.</p></article>
@@ -260,5 +280,20 @@ function placeholder(e,name){e.preventDefault();alert('Kontak '+name+' masih ber
 })();
 
 </script>
+
+<script>
+/* Responsive entry ident: only the matching aspect-ratio video is requested. */
+(()=>{
+ const overlay=document.getElementById('tessera-entry-intro'),video=document.getElementById('tessera-entry-video'),loading=document.getElementById('tessera-intro-loading'),fallback=document.getElementById('tessera-intro-fallback');
+ if(!overlay||!video)return;document.documentElement.classList.add('intro-lock');let finished=false;
+ const finish=()=>{if(finished)return;finished=true;overlay.classList.add('is-leaving');document.documentElement.classList.remove('intro-lock');setTimeout(()=>overlay.remove(),700)};
+ const isPhone=window.matchMedia('(max-width: 650px), (pointer: coarse) and (max-width: 900px)').matches;
+ video.src=isPhone?'videos/tessera-motion-mobile.mp4':'videos/tessera-motion-desktop.mp4';video.muted=true;video.playsInline=true;video.autoplay=true;video.preload='auto';
+ video.addEventListener('playing',()=>{if(loading)loading.style.display='none'},{once:true});video.addEventListener('ended',finish,{once:true});
+ video.addEventListener('error',()=>{if(loading)loading.textContent='VIDEO TIDAK DAPAT DIMUAT';overlay.classList.add('has-error')});fallback.addEventListener('click',finish);
+ const p=video.play();if(p&&typeof p.catch==='function')p.catch(()=>{if(loading)loading.textContent='KLIK LANJUT JIKA VIDEO TIDAK MULAI';overlay.classList.add('has-error')});
+})();
+</script>
+
 </body>
 </html>
