@@ -119,9 +119,35 @@ footer{padding:35px 0 45px;border-top:1px solid var(--line);color:#747d8d;font-s
 .partners-note{display:flex;align-items:center;gap:14px;margin-top:16px;padding:19px 22px;border:1px solid rgba(115,87,255,.19);border-radius:16px;background:linear-gradient(100deg,rgba(115,87,255,.07),rgba(19,189,244,.035))}.partners-note-icon{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border-radius:11px;background:rgba(115,87,255,.12);color:#b8aaff;font-size:18px}.partners-note p{font-size:12px;color:var(--muted);line-height:1.7}.partners-note strong{color:#f3f5fa;font-size:13px}
 @media(max-width:650px){.partners-section{padding:72px 0}.partners-panel-top{padding:22px 18px}.partners-count{width:58px;height:58px;flex-basis:58px;border-radius:15px}.partners-panel-bottom{align-items:flex-start;flex-direction:column;padding:14px 18px}.partners-note{padding:16px}.partner-table th,.partner-table td{padding:16px}}
 
+
+/* TESSERA INTRO LOADING VIDEO */
+#site-loader{position:fixed;inset:0;z-index:9999999;background:#06080d;display:grid;place-items:center;overflow:hidden;opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease}
+#site-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+#site-loader video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#site-loader .loader-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at center,rgba(19,189,244,.12),transparent 35%),#06080d;color:#fff;font:700 14px "Space Grotesk",sans-serif;letter-spacing:.22em}
+#site-loader .loader-fallback span{animation:loaderPulse 1.1s ease-in-out infinite alternate}
+#site-loader video{display:block}
+#site-loader .loader-desktop{display:block}
+#site-loader .loader-mobile{display:none}
+@keyframes loaderPulse{from{opacity:.45;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+@media(max-width:650px){#site-loader .loader-desktop{display:none}#site-loader .loader-mobile{display:block}}
+@media(prefers-reduced-motion:reduce){#site-loader{transition:none}#site-loader .loader-fallback span{animation:none}}
+
 </style>
 </head>
 <body>
+
+<!-- Loading intro video: ganti nama file src sesuai nama video milikmu -->
+<div id="site-loader" role="status" aria-label="Tessera Studio sedang memuat">
+  <div class="loader-fallback"><span>TESSERA STUDIO</span></div>
+  <video class="loader-desktop" autoplay muted playsinline preload="auto" aria-hidden="true">
+    <source src="loading-desktop.mp4" type="video/mp4">
+  </video>
+  <video class="loader-mobile" autoplay muted playsinline preload="auto" aria-hidden="true">
+    <source src="loading-mobile.mp4" type="video/mp4">
+  </video>
+</div>
+
 <header id="header">
   <div class="container nav">
     <a href="#home" class="brand" aria-label="Tessera Studio">
@@ -332,5 +358,44 @@ function placeholder(e,name){e.preventDefault();alert('Kontak '+name+' masih ber
 })();
 
 </script>
+
+<script>
+/* Loading video hanya tampil saat halaman dibuka, lalu website muncul setelah video selesai. */
+(() => {
+  const loader = document.getElementById('site-loader');
+  if (!loader) return;
+  const desktopVideo = loader.querySelector('.loader-desktop');
+  const mobileVideo = loader.querySelector('.loader-mobile');
+  let closed = false;
+  const closeLoader = () => {
+    if (closed) return;
+    closed = true;
+    loader.classList.add('is-hidden');
+    [desktopVideo, mobileVideo].forEach(video => {
+      if (video) { video.pause(); video.removeAttribute('src'); }
+    });
+    window.setTimeout(() => loader.remove(), 750);
+  };
+  const activeVideo = () => window.matchMedia('(max-width: 650px)').matches ? mobileVideo : desktopVideo;
+  const video = activeVideo();
+  if (video) {
+    video.addEventListener('ended', closeLoader, { once: true });
+    video.addEventListener('error', closeLoader, { once: true });
+    video.addEventListener('loadeddata', () => {
+      const fallback = loader.querySelector('.loader-fallback');
+      if (fallback) fallback.style.display = 'none';
+    }, { once: true });
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(closeLoader);
+    }
+  }
+  // Failsafe agar pengunjung tidak tertahan jika video gagal atau terlalu panjang.
+  window.setTimeout(closeLoader, 15000);
+  // Hormati preferensi pengguna yang mengurangi animasi.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) closeLoader();
+})();
+</script>
+
 </body>
 </html>
